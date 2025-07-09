@@ -4,14 +4,14 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo "✅ Just a simple build stage running."
-                bat 'type hello.txt'
+                echo '✅ Just a simple build stage running.'
+                sh 'echo Hello from Linux'
             }
         }
 
         stage('Done') {
             steps {
-                echo "🎉 Build complete. You can add more here later."
+                echo '🎉 Build Done!'
             }
         }
     }
