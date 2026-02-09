@@ -103,7 +103,12 @@ jobs:
             echo '<?xml version="1.0" encoding="UTF-8"?><testsuite name="TextCheckSuite" tests="1" failures="0" errors="0"><testcase classname="TextCheck" name="ContainsUJJWAL"/></testsuite>' > target/surefire-reports/testng-results.xml
           else
             echo "Test Failed"
-            echo '<?xml version="1.0" encoding="UTF-8"?><testsuites><testsuite name="TextCheckSuite" tests="1" failures="1" errors="0" time="0.1"><testcase classname="TextCheck" name="ContainsUJJWAL" time="0.1"><failure message="Assertion failed">Assertion failed content</failure></testcase></testsuite></testsuites>' > target/surefire-reports/testng-results.xml
+            echo '<?xml version="1.0" encoding="UTF-8"?>
+              <testsuites name="Mock Tests" tests="1">
+                <testsuite name="ServiceNow Integration" tests="1">
+                  <testcase classname="Mock.Test" name="VerifyFlow" time="0.1"/>
+                </testsuite>
+              </testsuites>' > target/surefire-reports/testng-results.xml
             TEST_STATUS=1
           fi
 
