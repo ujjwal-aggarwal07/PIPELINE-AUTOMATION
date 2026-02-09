@@ -98,7 +98,7 @@ jobs:
           TEST_STATUS=0
           mkdir -p target/surefire-reports
 
-          if grep -q "UJJWAL" test.txt; then
+          if grep -q "UJJWAL12456" test.txt; then
             echo "Test Passed"
             echo '<?xml version="1.0" encoding="UTF-8"?><testsuite name="TextCheckSuite" tests="1" failures="0" errors="0"><testcase classname="TextCheck" name="ContainsUJJWAL"/></testsuite>' > target/surefire-reports/testng-results.xml
           else
