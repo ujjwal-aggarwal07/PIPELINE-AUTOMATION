@@ -15,7 +15,6 @@
 
 
 
-
 name: My First Pipeline
 
 on:
@@ -25,6 +24,7 @@ on:
 
 jobs:
   test-job:
+    name: Test Job
     runs-on: ubuntu-latest
 
     steps:
@@ -35,8 +35,9 @@ jobs:
     name: Deploy
     needs: test-job
     runs-on: ubuntu-latest
+    environment: test       # Using your environment "test"
 
-    steps:     
+    steps:
       - name: ServiceNow Change
         uses: ServiceNow/servicenow-devops-change@v6.1.0
         with:
@@ -46,7 +47,21 @@ jobs:
           tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
           context-github: ${{ toJSON(github) }}
           job-name: 'Deploy'
-          change-request: '{"setCloseCode":"true","autoCloseChange":true,"attributes":{"short_description":"Automated Software Deployment","description":"Automated Software Deployment.","assignment_group":"a715cd759f2002002920bde8132e7018","implementation_plan":"Automated deployment from GitHub Actions","backout_plan":"Rollback to previous version","test_plan":"Verified via pipeline tests"}}'
+
+          change-request: >
+            {
+              "setCloseCode":"true",
+              "autoCloseChange":true,
+              "attributes":{
+                "short_description":"Automated Software Deployment from GitHub",
+                "description":"Change created automatically from GitHub Actions pipeline.",
+                "assignment_group":"a715cd759f2002002920bde8132e7018",
+                "implementation_plan":"Deployment triggered automatically via GitHub Actions.",
+                "backout_plan":"Rollback to previous stable version.",
+                "test_plan":"Pipeline tests executed successfully before deployment."
+              }
+            }
+
           interval: '100'
           timeout: '3600'
           changeCreationTimeOut: '3600'
@@ -54,4 +69,4 @@ jobs:
           abortOnChangeStepTimeout: true
 
       - name: Output of Change Creation
-        run: echo "change-request-number = ${{ steps.create.outputs.change-request-number }}" >> $GITHUB_OUTPUT
+        run: echo "Change Request created successfully"
