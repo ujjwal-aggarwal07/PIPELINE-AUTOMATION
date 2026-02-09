@@ -78,20 +78,20 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch: # allows manual trigger
+  workflow_dispatch:
 
 jobs:
-  test-job:
-    name: Test Job
+  test-and-send:
+    name: Test and Send to ServiceNow
     runs-on: ubuntu-latest
+    environment: test   # GitHub environment with secrets
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Create test text file
-        run: |
-          echo "Hello UJJWAL" > test.txt
+        run: echo "Hello UJJWAL" > test.txt
 
       - name: Run Unit Test
         run: |
@@ -102,17 +102,6 @@ jobs:
             echo "Test Failed"
             echo '<?xml version="1.0" encoding="UTF-8"?><testsuite><testcase classname="TextCheck" name="ContainsUJJWAL" failures="1"/></testsuite>' > test-results.xml
             exit 1
-          fi
-
-  send-to-servicenow:
-    name: Send Unit Test to ServiceNow
-    needs: test-job
-    runs-on: ubuntu-latest
-    environment: test   # GitHub environment with secrets
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
 
       - name: Send Test Result to ServiceNow
         uses: ServiceNow/servicenow-devops-test-report@v6.0.0
@@ -122,6 +111,6 @@ jobs:
           instance-url: ${{ secrets.SN_INSTANCE_URL }}
           tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
           context-github: ${{ toJSON(github) }}
-          job-name: 'Test Job'
+          job-name: 'test-and-send'
           xml-report-filename: test-results.xml
           test-summary-name: 'Text Validation Test'
