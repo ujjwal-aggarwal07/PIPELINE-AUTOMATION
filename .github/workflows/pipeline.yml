@@ -78,34 +78,41 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch: # allows manual trigger
 
 jobs:
   test-job:
-    name: Build and Validate
+    name: Test Job
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Print message
-        run: echo "Pipeline is running because you pushed to main"
-
-      - name: Validate test text file
+      - name: Create sample text file
         run: |
-          echo "Checking if test.txt contains UJJWAL"
+          echo "Hello UJJWAL" > sample.txt
 
-          if grep -q "UJJWAL" test.txt; then
-            echo "UJJWAL found in file"
-            echo "<testsuite tests='1' failures='0'><testcase name='check UJJWAL'/></testsuite>" > test-results.xml
+      - name: Run Unit Test
+        run: |
+          if grep -q "UJJWAL" sample.txt; then
+            echo "Test Passed"
+            echo '<?xml version="1.0" encoding="UTF-8"?><testsuite><testcase classname="TextCheck" name="ContainsUJJWAL"/></testsuite>' > test-results.xml
           else
-            echo "UJJWAL NOT found in file"
-            echo "<testsuite tests='1' failures='1'><testcase name='check UJJWAL'><failure>Text not found</failure></testcase></testsuite>" > test-results.xml
+            echo "Test Failed"
+            echo '<?xml version="1.0" encoding="UTF-8"?><testsuite><testcase classname="TextCheck" name="ContainsUJJWAL" failures="1"/></testsuite>' > test-results.xml
             exit 1
           fi
 
-      - name: Show Test Result XML
-        run: cat test-results.xml
+  send-to-servicenow:
+    name: Send Unit Test to ServiceNow
+    needs: test-job
+    runs-on: ubuntu-latest
+    environment: test   # GitHub environment with secrets
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Send Test Result to ServiceNow
         uses: ServiceNow/servicenow-devops-test-report@v6.0.0
@@ -115,10 +122,6 @@ jobs:
           instance-url: ${{ secrets.SN_INSTANCE_URL }}
           tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
           context-github: ${{ toJSON(github) }}
-          job-name: 'Build and Validate'
+          job-name: 'Test Job'
           xml-report-filename: test-results.xml
-          test-summary-name: 'test Text Validation Test'
-
-      - name: Output Status
-        run: echo "ServiceNow Change Request process completed"
-
+          test-summary-name: 'Text Validation Test'
