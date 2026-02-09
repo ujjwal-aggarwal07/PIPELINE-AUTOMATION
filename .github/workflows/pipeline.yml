@@ -14,7 +14,6 @@
 #         run: echo "Pipeline is running because you pushed to main"
 
 
-
 name: My First Pipeline
 
 on:
@@ -35,7 +34,7 @@ jobs:
     name: Deploy
     needs: test-job
     runs-on: ubuntu-latest
-    environment: test       # Using your environment "test"
+    environment: test        # Your GitHub Environment name
 
     steps:
       - name: ServiceNow Change
@@ -50,15 +49,16 @@ jobs:
 
           change-request: >
             {
-              "setCloseCode":"true",
-              "autoCloseChange":true,
-              "attributes":{
-                "short_description":"Automated Software Deployment from GitHub",
-                "description":"Change created automatically from GitHub Actions pipeline.",
-                "assignment_group":"a715cd759f2002002920bde8132e7018",
-                "implementation_plan":"Deployment triggered automatically via GitHub Actions.",
-                "backout_plan":"Rollback to previous stable version.",
-                "test_plan":"Pipeline tests executed successfully before deployment."
+              "setCloseCode": "true",
+              "autoCloseChange": true,
+              "change_model": "Standard",
+              "attributes": {
+                "short_description": "Automated Software Deployment from GitHub",
+                "description": "Change request created automatically from GitHub Actions pipeline.",
+                "assignment_group": "a715cd759f2002002920bde8132e7018",
+                "implementation_plan": "Deployment executed automatically using CI/CD pipeline.",
+                "backout_plan": "Rollback to previous stable version if any issue occurs.",
+                "test_plan": "All pipeline tests executed successfully before deployment."
               }
             }
 
@@ -68,5 +68,6 @@ jobs:
           abortOnChangeCreationFailure: true
           abortOnChangeStepTimeout: true
 
-      - name: Output of Change Creation
-        run: echo "Change Request created successfully"
+      - name: Output Status
+        run: echo "ServiceNow Change Request process completed"
+
