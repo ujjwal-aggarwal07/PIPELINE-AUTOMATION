@@ -13,6 +13,64 @@
 #       - name: Print message
 #         run: echo "Pipeline is running because you pushed to main"
 
+# pipeline change creattion
+# name: My First Pipeline
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# jobs:
+#   test-job:
+#     name: Test Job
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Print message
+#         run: echo "Pipeline is running because you pushed to main"
+
+#   deploy:
+#     name: Deploy
+#     needs: test-job
+#     runs-on: ubuntu-latest
+#     environment: test        # Your GitHub Environment name
+
+#     steps:
+#       - name: ServiceNow Change
+#         uses: ServiceNow/servicenow-devops-change@v6.1.0
+#         with:
+#           devops-integration-user-name: ${{ secrets.SN_DEVOPS_USER }}
+#           devops-integration-user-password: ${{ secrets.SN_DEVOPS_PASSWORD }}
+#           instance-url: ${{ secrets.SN_INSTANCE_URL }}
+#           tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
+#           context-github: ${{ toJSON(github) }}
+#           job-name: 'Deploy'
+
+#           change-request: >
+#             {
+#               "setCloseCode": "true",
+#               "autoCloseChange": true,
+#               "change_model": "Standard",
+#               "attributes": {
+#                 "short_description": "Automated Software Deployment from GitHub",
+#                 "description": "Change request created automatically from GitHub Actions pipeline.",
+#                 "assignment_group": "a715cd759f2002002920bde8132e7018",
+#                 "implementation_plan": "Deployment executed automatically using CI/CD pipeline.",
+#                 "backout_plan": "Rollback to previous stable version if any issue occurs.",
+#                 "test_plan": "All pipeline tests executed successfully before deployment."
+#               }
+#             }
+
+#           interval: '100'
+#           timeout: '3600'
+#           changeCreationTimeOut: '3600'
+#           abortOnChangeCreationFailure: true
+#           abortOnChangeStepTimeout: true
+
+
+
+# pipline for unit test ans sending result
 
 name: My First Pipeline
 
@@ -23,50 +81,43 @@ on:
 
 jobs:
   test-job:
-    name: Test Job
+    name: Build and Validate
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
       - name: Print message
         run: echo "Pipeline is running because you pushed to main"
 
-  deploy:
-    name: Deploy
-    needs: test-job
-    runs-on: ubuntu-latest
-    environment: test        # Your GitHub Environment name
+      - name: Validate sample text file
+        run: |
+          echo "Checking if sample.txt contains UJJWAL"
 
-    steps:
-      - name: ServiceNow Change
-        uses: ServiceNow/servicenow-devops-change@v6.1.0
+          if grep -q "UJJWAL" sample.txt; then
+            echo "UJJWAL found in file"
+            echo "<testsuite tests='1' failures='0'><testcase name='check UJJWAL'/></testsuite>" > test-results.xml
+          else
+            echo "UJJWAL NOT found in file"
+            echo "<testsuite tests='1' failures='1'><testcase name='check UJJWAL'><failure>Text not found</failure></testcase></testsuite>" > test-results.xml
+            exit 1
+          fi
+
+      - name: Show Test Result XML
+        run: cat test-results.xml
+
+      - name: Send Test Result to ServiceNow
+        uses: ServiceNow/servicenow-devops-test-report@v6.0.0
         with:
           devops-integration-user-name: ${{ secrets.SN_DEVOPS_USER }}
           devops-integration-user-password: ${{ secrets.SN_DEVOPS_PASSWORD }}
           instance-url: ${{ secrets.SN_INSTANCE_URL }}
           tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
           context-github: ${{ toJSON(github) }}
-          job-name: 'Deploy'
-
-          change-request: >
-            {
-              "setCloseCode": "true",
-              "autoCloseChange": true,
-              "change_model": "Standard",
-              "attributes": {
-                "short_description": "Automated Software Deployment from GitHub",
-                "description": "Change request created automatically from GitHub Actions pipeline.",
-                "assignment_group": "a715cd759f2002002920bde8132e7018",
-                "implementation_plan": "Deployment executed automatically using CI/CD pipeline.",
-                "backout_plan": "Rollback to previous stable version if any issue occurs.",
-                "test_plan": "All pipeline tests executed successfully before deployment."
-              }
-            }
-
-          interval: '100'
-          timeout: '3600'
-          changeCreationTimeOut: '3600'
-          abortOnChangeCreationFailure: true
-          abortOnChangeStepTimeout: true
+          job-name: 'Build and Validate'
+          xml-report-filename: test-results.xml
+          test-summary-name: 'Sample Text Validation Test'
 
       - name: Output Status
         run: echo "ServiceNow Change Request process completed"
