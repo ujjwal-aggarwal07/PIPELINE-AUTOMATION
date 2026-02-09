@@ -83,7 +83,7 @@ jobs:
   test-and-send:
     name: Test and Send Unit Test to ServiceNow
     runs-on: ubuntu-latest
-    environment: test  # GitHub environment with secrets
+    environment: test
 
     steps:
       - name: Checkout code
@@ -100,20 +100,10 @@ jobs:
 
           if grep -q "UJJWAL" test.txt; then
             echo "Test Passed"
-            cat > target/surefire-reports/testng-results.xml <<EOL
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="TextCheckSuite" tests="1" failures="0" errors="0">
-  <testcase classname="TextCheck" name="ContainsUJJWAL"/>
-</testsuite>
-EOL
+            echo '<?xml version="1.0" encoding="UTF-8"?><testsuite name="TextCheckSuite" tests="1" failures="0" errors="0"><testcase classname="TextCheck" name="ContainsUJJWAL"/></testsuite>' > target/surefire-reports/testng-results.xml
           else
             echo "Test Failed"
-            cat > target/surefire-reports/testng-results.xml <<EOL
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="TextCheckSuite" tests="1" failures="1" errors="0">
-  <testcase classname="TextCheck" name="ContainsUJJWAL" failures="1"/>
-</testsuite>
-EOL
+            echo '<?xml version="1.0" encoding="UTF-8"?><testsuite name="TextCheckSuite" tests="1" failures="1" errors="0"><testcase classname="TextCheck" name="ContainsUJJWAL" failures="1"/></testsuite>' > target/surefire-reports/testng-results.xml
             TEST_STATUS=1
           fi
 
@@ -136,4 +126,3 @@ EOL
         run: |
           echo "Failing workflow because the test failed."
           exit 1
-
