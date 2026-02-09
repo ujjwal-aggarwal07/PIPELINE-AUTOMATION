@@ -51,7 +51,7 @@ jobs:
             {
               "setCloseCode": "true",
               "autoCloseChange": true,
-              "change_model": "adffaa9e4370211072b7f6be5bb8f2ed",
+              "change_model": "Standard",
               "attributes": {
                 "short_description": "Automated Software Deployment from GitHub",
                 "description": "Change request created automatically from GitHub Actions pipeline.",
