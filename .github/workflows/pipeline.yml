@@ -71,7 +71,6 @@
 
 
 # pipline for unit test ans sending result
-
 name: My First Pipeline
 
 on:
@@ -91,26 +90,34 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Create test text file
-        run: |
-          echo "Hello UJJWAL" > test.txt
+        run: echo "Hello UJJWAL" > test.txt
 
       - name: Run Unit Test
         id: run-test
         run: |
-          # Initialize test status variable
+          # Initialize test status
           TEST_STATUS=0
 
-          # Run the test
+          # Run simple test
           if grep -q "UJJWAL" test.txt; then
             echo "Test Passed"
-            echo '<?xml version="1.0" encoding="UTF-8"?><testsuite><testcase classname="TextCheck" name="ContainsUJJWAL"/></testsuite>' > test-results.xml
+            # Generate ServiceNow-compatible XML (JUnit/TestNG style)
+            mkdir -p target/surefire-reports
+            echo '<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="TextCheckSuite" tests="1" failures="0" errors="0">
+  <testcase classname="TextCheck" name="ContainsUJJWAL"/>
+</testsuite>' > target/surefire-reports/testng-results.xml
           else
             echo "Test Failed"
-            echo '<?xml version="1.0" encoding="UTF-8"?><testsuite><testcase classname="TextCheck" name="ContainsUJJWAL" failures="1"/></testsuite>' > test-results.xml
+            mkdir -p target/surefire-reports
+            echo '<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="TextCheckSuite" tests="1" failures="1" errors="0">
+  <testcase classname="TextCheck" name="ContainsUJJWAL" failures="1"/>
+</testsuite>' > target/surefire-reports/testng-results.xml
             TEST_STATUS=1
           fi
 
-          # Save test status to GitHub step output
+          # Save test status for later step
           echo "test_status=$TEST_STATUS" >> $GITHUB_OUTPUT
 
       - name: Send Test Result to ServiceNow
@@ -122,8 +129,15 @@ jobs:
           tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
           context-github: ${{ toJSON(github) }}
           job-name: 'test-and-send'
-          xml-report-filename: test-results.xml
+          xml-report-filename: target/surefire-reports/testng-results.xml
           test-summary-name: 'Text Validation Test'
+
+      - name: Fail Workflow if Test Failed
+        if: steps.run-test.outputs.test_status == '1'
+        run: |
+          echo "Failing the workflow because the test failed."
+          exit 1
+
 
       - name: Fail Workflow if Test Failed
         if: steps.run-test.outputs.test_status == '1'
