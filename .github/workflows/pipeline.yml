@@ -71,7 +71,7 @@
 
 
 # pipline for unit test ans sending result
-name: My First Pipeline
+name: Test ServiceNow Custom Action
 
 on:
   push:
@@ -81,43 +81,40 @@ on:
 
 jobs:
   test-and-send:
-    name: Test and Send to ServiceNow
+    name: Test and Send Unit Test to ServiceNow
     runs-on: ubuntu-latest
-    environment: test   # GitHub environment with secrets
+    environment: test  # GitHub environment with secrets
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Create test text file
+      - name: Create test file
         run: echo "Hello UJJWAL" > test.txt
 
       - name: Run Unit Test
         id: run-test
         run: |
-          # Initialize test status
           TEST_STATUS=0
+          mkdir -p target/surefire-reports
 
-          # Run simple test
+          # Fake unit test: check if "UJJWAL" exists
           if grep -q "UJJWAL" test.txt; then
             echo "Test Passed"
-            # Generate ServiceNow-compatible XML (JUnit/TestNG style)
-            mkdir -p target/surefire-reports
-            echo '<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="TextCheckSuite" tests="1" failures="0" errors="0">
-  <testcase classname="TextCheck" name="ContainsUJJWAL"/>
-</testsuite>' > target/surefire-reports/testng-results.xml
+            echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<testsuite name=\"TextCheckSuite\" tests=\"1\" failures=\"0\" errors=\"0\">
+  <testcase classname=\"TextCheck\" name=\"ContainsUJJWAL\"/>
+</testsuite>" > target/surefire-reports/testng-results.xml
           else
             echo "Test Failed"
-            mkdir -p target/surefire-reports
-            echo '<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="TextCheckSuite" tests="1" failures="1" errors="0">
-  <testcase classname="TextCheck" name="ContainsUJJWAL" failures="1"/>
-</testsuite>' > target/surefire-reports/testng-results.xml
+            echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<testsuite name=\"TextCheckSuite\" tests=\"1\" failures=\"1\" errors=\"0\">
+  <testcase classname=\"TextCheck\" name=\"ContainsUJJWAL\" failures=\"1\"/>
+</testsuite>" > target/surefire-reports/testng-results.xml
             TEST_STATUS=1
           fi
 
-          # Save test status for later step
+          # Pass test status to later steps
           echo "test_status=$TEST_STATUS" >> $GITHUB_OUTPUT
 
       - name: Send Test Result to ServiceNow
@@ -135,12 +132,5 @@ jobs:
       - name: Fail Workflow if Test Failed
         if: steps.run-test.outputs.test_status == '1'
         run: |
-          echo "Failing the workflow because the test failed."
-          exit 1
-
-
-      - name: Fail Workflow if Test Failed
-        if: steps.run-test.outputs.test_status == '1'
-        run: |
-          echo "Failing the workflow because the test failed."
+          echo "Failing workflow because the test failed."
           exit 1
