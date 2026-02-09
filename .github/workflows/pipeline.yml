@@ -91,11 +91,11 @@ jobs:
       - name: Print message
         run: echo "Pipeline is running because you pushed to main"
 
-      - name: Validate sample text file
+      - name: Validate test text file
         run: |
-          echo "Checking if sample.txt contains UJJWAL"
+          echo "Checking if test.txt contains UJJWAL"
 
-          if grep -q "UJJWAL" sample.txt; then
+          if grep -q "UJJWAL" test.txt; then
             echo "UJJWAL found in file"
             echo "<testsuite tests='1' failures='0'><testcase name='check UJJWAL'/></testsuite>" > test-results.xml
           else
@@ -117,7 +117,7 @@ jobs:
           context-github: ${{ toJSON(github) }}
           job-name: 'Build and Validate'
           xml-report-filename: test-results.xml
-          test-summary-name: 'Sample Text Validation Test'
+          test-summary-name: 'test Text Validation Test'
 
       - name: Output Status
         run: echo "ServiceNow Change Request process completed"
