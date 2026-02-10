@@ -69,9 +69,7 @@
 #           abortOnChangeStepTimeout: true
 
 
-
-# pipline for unit test ans sending result
-name: ServiceNow Unit Test Integration
+name: CI with ServiceNow Integration
 
 on:
   push:
@@ -80,8 +78,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-and-send:
-    name: Test and Send Unit Test to ServiceNow
+  test-and-report:
+    name: Test and Report
     runs-on: ubuntu-latest
     environment: test
 
@@ -92,7 +90,7 @@ jobs:
       - name: Create test file
         run: echo "Hello UJJWAL" > test.txt
 
-      - name: Run Unit Test and Generate XML
+      - name: Run Unit Test
         id: run-test
         run: |
           TEST_STATUS=0
@@ -100,10 +98,10 @@ jobs:
 
           if grep -q "UJJWAL" test.txt; then
             echo "Test Passed"
-            echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?><testsuite name=\"TextCheckSuite\" tests=\"1\" failures=\"0\" errors=\"0\"><testcase classname=\"TextCheck\" name=\"ContainsUJJWAL\"/></testsuite>" > target/surefire-reports/testng-results.xml
+            echo '<?xml version="1.0" encoding="UTF-8"?><testsuite name="TextCheckSuite" tests="1" failures="0" errors="0"><testcase classname="TextCheck" name="ContainsUJJWAL"/></testsuite>' > target/surefire-reports/testng-results.xml
           else
             echo "Test Failed"
-            echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?><testsuite name=\"TextCheckSuite\" tests=\"1\" failures=\"1\" errors=\"0\"><testcase classname=\"TextCheck\" name=\"ContainsUJJWAL\"><failure message=\"Text UJJWAL not found\"/></testcase></testsuite>" > target/surefire-reports/testng-results.xml
+            echo '<?xml version="1.0" encoding="UTF-8"?><testsuite name="TextCheckSuite" tests="1" failures="1" errors="0"><testcase classname="TextCheck" name="ContainsUJJWAL"><failure message="Text not found"/></testcase></testsuite>' > target/surefire-reports/testng-results.xml
             TEST_STATUS=1
           fi
 
@@ -117,12 +115,42 @@ jobs:
           instance-url: ${{ secrets.SN_INSTANCE_URL }}
           tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
           context-github: ${{ toJSON(github) }}
-          job-name: 'Test and Send Unit Test to ServiceNow'
+          job-name: 'Test and Report'
           xml-report-filename: target/surefire-reports/testng-results.xml
           test-summary-name: 'Text Validation Test'
 
-      - name: Fail Workflow if Test Failed
+      - name: Fail if test failed
         if: steps.run-test.outputs.test_status == '1'
-        run: |
-          echo "Failing workflow because the test failed."
-          exit 1
+        run: exit 1
+
+
+  create-change:
+    name: Create Change in ServiceNow
+    needs: test-and-report
+    runs-on: ubuntu-latest
+    environment: test
+
+    steps:
+      - name: ServiceNow Change
+        id: create
+        uses: ServiceNow/servicenow-devops-change@v6.1.0
+        with:
+          devops-integration-user-name: ${{ secrets.SN_DEVOPS_USER }}
+          devops-integration-user-password: ${{ secrets.SN_DEVOPS_PASSWORD }}
+          instance-url: ${{ secrets.SN_INSTANCE_URL }}
+          tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
+          context-github: ${{ toJSON(github) }}
+          job-name: 'Create Change in ServiceNow'
+          change-request: '{"setCloseCode":"true","autoCloseChange":true,"attributes":{"short_description":"UJWAL HARD WORK PAYs OFFAutomated Change from GitHub Pipeline","description":"Change created automatically after successful unit test execution.","implementation_plan":"Automated deployment after approval.","backout_plan":"Rollback to previous stable version.","test_plan":"Unit test results attached in Test Summary"}}'
+          interval: '100'
+          timeout: '3600'
+          changeCreationTimeOut: '3600'
+          abortOnChangeCreationFailure: true
+          abortOnChangeStepTimeout: true
+
+      - name: Show Change Number
+        run: echo "Created Change Request = ${{ steps.create.outputs.change-request-number }}"
+
+
+
+# pipline for unit test ans sending result
