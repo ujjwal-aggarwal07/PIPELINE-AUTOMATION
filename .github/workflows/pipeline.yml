@@ -141,7 +141,7 @@ jobs:
           tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
           context-github: ${{ toJSON(github) }}
           job-name: 'Create Change in ServiceNow'
-          change-request: '{"setCloseCode":"true","autoCloseChange":true,"attributes":{"short_description":"Ujjwal Automated Software Deployment","description":"Change request automatically created from GitHub Actions pipeline.","assignment_group":"a7291a2e9377aa1088adfc532bba10ea","implementation_plan":"Deployment executed via CI/CD pipeline.","backout_plan":"Rollback to previous stable version if any issue occurs.","test_plan":"Unit tests executed successfully before deployment."}}'
+          change-request: '{"setCloseCode":"true","autoCloseChange":true,"attributes":{"short_description":"Ujjwal Automated Software Deployment","description":"Change request automatically created from GitHub Actions pipeline.","assignment_group":"da73a143930cfa1088adfc532bba105a","implementation_plan":"Deployment executed via CI/CD pipeline.","backout_plan":"Rollback to previous stable version if any issue occurs.","test_plan":"Unit tests executed successfully before deployment."}}'
           interval: '100'
           timeout: '3600'
           changeCreationTimeOut: '3600'
