@@ -98,10 +98,10 @@ jobs:
 
           if grep -q "UJJWAL" test.txt; then
             echo "Test Passed"
-            echo '<?xml version="1.0" encoding="UTF-8"?><testsuite name="TextCheckSuite" tests="1" failures="0" errors="0"><testcase classname="TextCheck" name="ContainsUJJWAL"/></testsuite>' > target/surefire-reports/testng-results.xml
+            echo '<?xml version="1.0" encoding="UTF-8"?><testsuite name="TextCheckSuite" tests="4" failures="0" errors="0"><testcase classname="TextCheck" name="ContainsUJJWAL"/></testsuite>' > target/surefire-reports/testng-results.xml
           else
             echo "Test Failed"
-            echo '<?xml version="1.0" encoding="UTF-8"?><testsuite name="TextCheckSuite" tests="1" failures="1" errors="0"><testcase classname="TextCheck" name="ContainsUJJWAL"><failure message="Text not found"/></testcase></testsuite>' > target/surefire-reports/testng-results.xml
+            echo '<?xml version="1.0" encoding="UTF-8"?><testsuite name="TextCheckSuite" tests="4" failures="1" errors="0"><testcase classname="TextCheck" name="ContainsUJJWAL"><failure message="Text not found"/></testcase></testsuite>' > target/surefire-reports/testng-results.xml
             TEST_STATUS=1
           fi
 
@@ -141,7 +141,7 @@ jobs:
           tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
           context-github: ${{ toJSON(github) }}
           job-name: 'Create Change in ServiceNow'
-          change-request: '{"setCloseCode":"true","autoCloseChange":true,"attributes":{"short_description":"UJWAL HARD WORK PAYs OFFAutomated Change from GitHub Pipeline","description":"Change created automatically after successful unit test execution.","implementation_plan":"Automated deployment after approval.","backout_plan":"Rollback to previous stable version.","test_plan":"Unit test results attached in Test Summary"}}'
+          change-request: '{"setCloseCode":"true","autoCloseChange":true,"attributes":{"short_description":"Automated Software Deployment","description":"Automated Software Deployment.","assignment_group":"a7291a2e9377aa1088adfc532bba10ea","implementation_plan":"Software update is tested and results can be found in Test Summaries Tab; When the change is approved the implementation happens automated by the CICD pipeline within the change planned start and end time window.","backout_plan":"When software fails in production, the previous software release will be re-deployed.","test_plan":"Testing if the software was successfully deployed"}}'
           interval: '100'
           timeout: '3600'
           changeCreationTimeOut: '3600'
